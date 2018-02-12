@@ -1,10 +1,9 @@
 ######################################################
 
-COURSE=cs131e
+COURSE=cs131w
 ASGN=03
 COMPILER=cobra
 EXT=cobra
-GROUP=group.txt
 
 ######################################################
 
@@ -17,7 +16,7 @@ ifeq ($(UNAME), Darwin)
 endif
 endif
 
-.PHONY: test bin build clean distclean turnin check-group
+.PHONY: test bin build clean distclean turnin
 
 test: clean
 	stack test
@@ -47,10 +46,7 @@ distclean: clean
 tags:
 	hasktags -x -c lib/
 
-check-group: $(GROUP)
-	awk --posix -f group_parser.awk $(GROUP)
-
-turnin: clean check-group
+turnin: clean
 	./files_to_submit.sh | tar --transform "s/^./$(ASGN)-$(COMPILER)/" -zcvf ../$(ASGN)-$(COMPILER).tgz -T -
 	mv ../$(ASGN)-$(COMPILER).tgz .
 	turnin -c $(COURSE) -p $(ASGN) ./$(ASGN)-$(COMPILER).tgz
