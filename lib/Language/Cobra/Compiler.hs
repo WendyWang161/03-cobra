@@ -113,15 +113,29 @@ compileBind env (x, e) = (env', is)
 
 -- | TBD: Implement code for `Prim1` with appropriate type checking
 compilePrim1 :: Tag -> Env -> Prim1 -> IExp -> [Instruction]
-compilePrim1 l env op v = error "TBD:compilePrim1"
+compilePrim1 l env Add1 v = compileEnv env v 
+                            ++ [ IAdd (Reg EAX) (Const 1) ]
+compilePrim1 l env Sub1 v = compileEnv env v 
+                            ++ [ IAdd (Reg EAX) (Const (-1)) ] 
+-- check type : if v is a number
 
 -- | TBD: Implement code for `Prim2` with appropriate type checking
 compilePrim2 :: Tag -> Env -> Prim2 -> IExp -> IExp -> [Instruction]
-compilePrim2 l env op = error "TBD:compilePrim2"
+compilePrim2 l env Plus v1 v2 = [ IMov (Reg EAX) (immArg env v1)
+                                , IAdd (Reg EAX) (immArg env v2)
+                                ]
+compilePrim2 env Minus v1 v2  = [ IMov (Reg EAX) (immArg env v1)
+                                , ISub (Reg EAX) (immArg env v2)
+                                ]
+compilePrim2 env Times v1 v2  = [ IMov (Reg EAX) (immArg env v1)
+                                , IMul (Reg EAX) (immArg env v2)
+                                , ISar (Reg EAX) (Const 1)
+                                ]
+
 
 -- | TBD: Implement code for `If` with appropriate type checking
 compileIf :: Tag -> Env -> IExp -> AExp -> AExp -> [Instruction]
-compileIf l env v e1 e2 = error "TBD:compileIf"
+compileIf l env v e1 e2 = 
 
 immArg :: Env -> IExp -> Arg
 immArg _   (Number n _)  = repr n
