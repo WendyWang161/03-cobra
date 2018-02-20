@@ -31,7 +31,13 @@ header = unlines
 --   for jumping to and calling `error` here.
 
 postlude :: [Instruction]
-postlude = error "TBD:postlude"
+postlude = []
+--[ ILabel (dynErrorLabel t)        
+--           , IPush  (Reg EAX)            
+--           , IPush  (ecode t)            
+--           , ICall  (Builtin "error")    
+--          ]
+
 
 --------------------------------------------------------------------------------
 instrAsm :: Instruction -> Text

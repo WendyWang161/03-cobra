@@ -3,9 +3,13 @@
 
 extern int our_code_starts_here() asm("our_code_starts_here");
 
-int print(int val) {
-  printf("Unknown value: %#010x\n", val);
-  return val;
+void print(int val){
+  if (val == 0xFFFFFFFF)
+    printf("true\n");
+  else if (val == 0x7FFFFFFF)
+    printf("false\n");
+  else // should be a number!
+    printf("%d\n", val >> 1);  // shift right to remove tag bit.
 }
 
 int main(int argc, char** argv) {
