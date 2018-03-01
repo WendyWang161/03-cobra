@@ -31,12 +31,17 @@ header = unlines
 --   for jumping to and calling `error` here.
 
 postlude :: [Instruction]
-postlude = []
---[ ILabel (dynErrorLabel t)        
---           , IPush  (Reg EAX)            
---           , IPush  (ecode t)            
---           , ICall  (Builtin "error")    
---          ]
+postlude = [ ILabel (DynamicErr (TypeError TNumber))              
+           , IPush  (Const 0)
+           , IJmp (BranchDone 0)
+           , ILabel (DynamicErr (TypeError TBoolean))
+           , IPush  (Const 2)
+           , IJmp (BranchDone 0)
+           , ILabel (DynamicErr ArithOverflow)
+           , IPush  (Const 1)
+           , ILabel (BranchDone 0)            
+           , ICall  (Builtin "error")   
+           ]
 
 
 --------------------------------------------------------------------------------

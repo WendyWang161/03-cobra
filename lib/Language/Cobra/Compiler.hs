@@ -120,30 +120,24 @@ compileBind env (x, e) = (env', is)
 -- | TBD: Implement code for `Prim1` with appropriate type checking
 compilePrim1 :: Tag -> Env -> Prim1 -> IExp -> [Instruction]
 compilePrim1 _ env Add1 v = assertType env v TNumber 
-                            ++ [ IAdd (Reg EAX) (Const 2) ]
+                            ++ [ IAdd (Reg EAX) (Const 2)
+                               , IJo (DynamicErr ArithOverflow) ]
 compilePrim1 _ env Sub1 v = assertType env v TNumber  
-                            ++ [ IAdd (Reg EAX) (Const (-2)) ] 
-compilePrim1 _ env Print v = --[ IPush (Reg EBP)
-                            --, IMov (Reg EBP) (Reg ESP)
-                            --, ISub (Reg ESP) (Const 4)]
-                            compileEnv env v ++
-                            [ IMov (Reg EBX) (Reg EAX)
-                            , IPush (Reg EBX)
-                            , ICall (Builtin "print")]
-                            --, IAdd (Reg ESP) (Const 4)]
-                            --, IMov (Reg ESP) (Reg EBP)
-                            --, IPop (Reg EBP)
-                            --] 
+                            ++ [ IAdd (Reg EAX) (Const (-2)) 
+                               , IJo (DynamicErr ArithOverflow)] 
+compilePrim1 _ env Print v = compileEnv env v ++
+                            [ IPush (Reg EAX)
+                            , ICall (Builtin "print")
+                            , IPop  (Reg EAX)]
 compilePrim1 _ env IsNum v = compileEnv env v ++
-                            [ IMov (Reg EBX) (Reg EAX)
-                            , IAnd (Reg EBX) (HexConst 0x00000001)      
-                            , IShl (Reg EBX) (Const 31)
-                            , IOr  (Reg EBX) (HexConst 0x00000001)]
+                            [ IAnd (Reg EAX) (HexConst 0x00000001)      
+                            , IShl (Reg EAX) (Const 31)
+                            , IOr  (Reg EAX) (typeMask TBoolean)
+                            , IXor (Reg EAX) (HexConst 0x80000000)]
 compilePrim1 _ env IsBool v = compileEnv env v ++
-                            [ IMov (Reg EBX) (Reg EAX)
-                            , IAnd (Reg EBX) (HexConst 0x00000001)
-                            , IShl (Reg EBX) (Const 31)
-                            , IOr  (Reg EBX) (HexConst 0x1000001)]
+                            [ IAnd (Reg EAX) (HexConst 0x00000001)
+                            , IShl (Reg EAX) (Const 31)
+                            , IOr  (Reg EAX) (typeMask TBoolean)]
 
 
 
@@ -155,16 +149,17 @@ compilePrim2 _ env Plus v1 v2 = assertType env v1 TNumber
                                 ++ assertType env v2 TNumber
                                 ++ [ IMov (Reg EAX) (immArg env v1)
                                 , IAdd (Reg EAX) (immArg env v2)
-                                ]
+                                , IJo (DynamicErr ArithOverflow)]
 compilePrim2 _ env Minus v1 v2  = assertType env v1 TNumber
                                 ++ assertType env v2 TNumber
                                 ++ [ IMov (Reg EAX) (immArg env v1)
                                 , ISub (Reg EAX) (immArg env v2)
-                                ]
+                                , IJo (DynamicErr ArithOverflow)]
 compilePrim2 _ env Times v1 v2  = assertType env v1 TNumber
                                 ++ assertType env v2 TNumber
                                 ++ [ IMov (Reg EAX) (immArg env v1)
                                 , IMul (Reg EAX) (immArg env v2)
+                                , IJo (DynamicErr ArithOverflow)
                                 , ISar (Reg EAX) (Const 1)
                                 ]
 
@@ -231,10 +226,9 @@ assertType :: Env -> IExp -> Ty -> [Instruction]
 assertType env v ty
   = [ IMov (Reg EAX) (immArg env v)
     , IMov (Reg EBX) (Reg EAX)
-    , IAnd (Reg EBX) (HexConst 0x00000001)
-    , ICmp (Reg EBX) (typeTag  ty)]
-    --, IJne (TypeError ty)
-    --]
+    , IAnd (Reg EBX) (typeMask ty)
+    , ICmp (Reg EBX) (typeTag  ty)
+    , IJne (DynamicErr (TypeError ty))]
 
 --------------------------------------------------------------------------------
 -- | Representing Values

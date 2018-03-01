@@ -1,3 +1,7 @@
 [
-    
+  {"name"  : "mytest1"  ,   "code"   : "print(1)+print(12)" , "result" : { "value" : "1\n12\n13"} },
+  {"name"  : "mytest2"  ,   "code"   : "let x = isBool(false) in isNum(x)" , "result" : { "value" : "false"} },
+  {"name"  : "mytest3"  ,   "code"   : "if 12>13: 1124 else: print(10)*10" , "result" : { "value" : "10\n100"} },
+  {"name"  : "mytest4"  ,   "code"   : "print(5)-print(false)" , "result" : { "failure" : "expected a number"} },
+  {"name"  : "mytest5"  ,   "code"   : "if 12-1: 0 else: add1(1)" , "result" : { "failure" : "expected a boolean"} }
 ]
